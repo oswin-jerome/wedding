@@ -27,6 +27,7 @@ class ProjectForm
                     ->collection('project_files')
                     ->multiple()
                     ->reorderable()
+                    ->conversion('thumb') // ✅ use your conversion
                     ->downloadable()
                     ->openable()
                     ->imagePreviewHeight('150')
