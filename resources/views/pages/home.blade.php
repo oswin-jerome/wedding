@@ -203,7 +203,7 @@
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                         @foreach ($media as $item)
                             <figure class="relative overflow-hidden group">
-                                <img src="{{ $item->getUrl() }}" alt="{{ $item->name }}"
+                                <img src="{{ $item->getUrl('thumb') }}" alt="{{ $item->name }}"
                                     class="w-full h-44 object-cover transition-all duration-300 group-hover:scale-[1.03]"
                                     loading="lazy">
                                 <figcaption
@@ -239,16 +239,14 @@
                 </div>
 
                 @if (session('status'))
-                    <div
-                        class="mb-5 text-sm text-[#1b1b18] dark:text-[#ededec] rounded-md border border-green-200 bg-green-50 px-4 py-3 shadow-sm"
-                        role="status"
-                        aria-live="polite"
-                    >
+                    <div class="mb-5 text-sm text-[#1b1b18] dark:text-[#ededec] rounded-md border border-green-200 bg-green-50 px-4 py-3 shadow-sm"
+                        role="status" aria-live="polite">
                         {{ session('status') }}
                     </div>
                 @endif
 
-                <form id="wishesForm" method="POST" action="{{ route('projects.wishes.store', $project) }}" class="space-y-4">
+                <form id="wishesForm" method="POST" action="{{ route('projects.wishes.store', $project) }}"
+                    class="space-y-4">
                     @csrf
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
@@ -288,10 +286,7 @@
                     </div>
 
                     @php
-                        $latestWishes = $project->wishes()
-                            ->latest()
-                            ->limit(5)
-                            ->get();
+                        $latestWishes = $project->wishes()->latest()->limit(5)->get();
                     @endphp
 
                     <div class="mt-4 space-y-3">
@@ -299,7 +294,8 @@
                             <div class="text-sm text-gray-600 dark:text-gray-400">No wishes yet. Be the first.</div>
                         @else
                             @foreach ($latestWishes as $wish)
-                                <article class="rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-4 py-3">
+                                <article
+                                    class="rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-4 py-3">
                                     <div class="flex items-center justify-between gap-4">
                                         <div class="text-sm font-semibold text-gray-800 dark:text-gray-200">
                                             {{ $wish->name ?? 'Anonymous' }}

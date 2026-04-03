@@ -33,6 +33,7 @@ class ProjectsTable
                     ->toggleable(isToggledHiddenByDefault: true),
                 SpatieMediaLibraryImageColumn::make('project_files')
                     ->collection('project_files')
+                    ->conversion('thumb') // ✅ use your conversion
                     ->limit(3),
 
             ])

@@ -53,6 +53,7 @@ class ProjectResource extends Resource
                 TextEntry::make('description'),
                 SpatieMediaLibraryImageEntry::make('project_files')
                     ->collection('project_files')
+                    ->conversion('thumb') // ✅ use your conversion
                     ->label('Media Files')->columnSpanFull()->columns(2),
                 // ViewEntry::make('gallery')
                 //     ->view('filament.components.project-gallery')

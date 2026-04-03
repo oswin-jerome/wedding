@@ -104,7 +104,7 @@
                                 <div class="overflow-hidden rounded-lg border border-gray-200/70 dark:border-gray-700 bg-white/60 dark:bg-[#161615]/60">
                                     <div class="aspect-16/10">
                                         <img
-                                            src="{{ $item->getUrl() }}"
+                                            src="{{ $item->getUrl('thumb') }}"
                                             alt="{{ $item->name }}"
                                             class="w-full h-full object-cover transition-transform duration-300 hover:scale-[1.03]"
                                             loading="lazy"
