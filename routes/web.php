@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\WishController;
 use App\Models\Project;
 use Illuminate\Support\Facades\Route;
 
@@ -22,3 +23,6 @@ Route::get('/{project:code}/banner', function (Project $project) {
 
     return view('pages.banner', compact('project'));
 });
+
+Route::post('/{project:code}/wishes', [WishController::class, 'store'])
+    ->name('projects.wishes.store');

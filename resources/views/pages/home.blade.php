@@ -234,11 +234,22 @@
                 <div class="mb-6">
                     <h2 class="wedding-serif text-2xl font-semibold tracking-tight leading-[1.2]">Send wishes</h2>
                     <p class="text-gray-600 dark:text-gray-400 mt-1 text-sm">
-                        Leave a note for the couple. (Stored on this device.)
+                        Leave a note for the couple. Your wish will be saved for this project.
                     </p>
                 </div>
 
-                <form id="wishesForm" class="space-y-4">
+                @if (session('status'))
+                    <div
+                        class="mb-5 text-sm text-[#1b1b18] dark:text-[#ededec] rounded-md border border-green-200 bg-green-50 px-4 py-3 shadow-sm"
+                        role="status"
+                        aria-live="polite"
+                    >
+                        {{ session('status') }}
+                    </div>
+                @endif
+
+                <form id="wishesForm" method="POST" action="{{ route('projects.wishes.store', $project) }}" class="space-y-4">
+                    @csrf
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label for="wishName" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
@@ -247,15 +258,6 @@
                             <input id="wishName" name="name" type="text" maxlength="60"
                                 class="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#161615] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-gray-600"
                                 autocomplete="name">
-                        </div>
-
-                        <div>
-                            <label for="wishTitle" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                                Subject (optional)
-                            </label>
-                            <input id="wishTitle" name="title" type="text" maxlength="80"
-                                class="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#161615] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-gray-600"
-                                placeholder="A sweet message">
                         </div>
                     </div>
 
@@ -283,18 +285,38 @@
                 <div class="mt-8">
                     <div class="flex items-center justify-between gap-4">
                         <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200">Latest wishes</h3>
-                        <button id="clearWishesBtn" type="button"
-                            class="text-xs underline underline-offset-4 text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
-                            Clear on this device
-                        </button>
                     </div>
 
-                    <div id="wishesList" class="mt-4 space-y-3"></div>
+                    @php
+                        $latestWishes = $project->wishes()
+                            ->latest()
+                            ->limit(5)
+                            ->get();
+                    @endphp
+
+                    <div class="mt-4 space-y-3">
+                        @if ($latestWishes->isEmpty())
+                            <div class="text-sm text-gray-600 dark:text-gray-400">No wishes yet. Be the first.</div>
+                        @else
+                            @foreach ($latestWishes as $wish)
+                                <article class="rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-4 py-3">
+                                    <div class="flex items-center justify-between gap-4">
+                                        <div class="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                            {{ $wish->name ?? 'Anonymous' }}
+                                        </div>
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">
+                                            {{ $wish->created_at?->diffForHumans() }}
+                                        </div>
+                                    </div>
+                                    <p class="mt-2 text-sm text-gray-700 dark:text-gray-200 whitespace-pre-wrap">
+                                        {{ $wish->message }}
+                                    </p>
+                                </article>
+                            @endforeach
+                        @endif
+                    </div>
                 </div>
 
-                <div id="wishToast"
-                    class="hidden mt-5 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#161615] px-4 py-3 text-sm text-gray-700 dark:text-gray-200"
-                    role="status" aria-live="polite"></div>
             </section>
         </main>
     </div>
@@ -337,132 +359,6 @@
                     });
                 });
             });
-
-            // Local "wishes" storage on this device
-            var storageKey = 'wedding_wishes_' + @json($project->code);
-            var form = document.getElementById('wishesForm');
-            var list = document.getElementById('wishesList');
-            var toast = document.getElementById('wishToast');
-            var clearBtn = document.getElementById('clearWishesBtn');
-
-            function safeText(value) {
-                return String(value || '')
-                    .replaceAll('&', '&amp;')
-                    .replaceAll('<', '&lt;')
-                    .replaceAll('>', '&gt;')
-                    .replaceAll('"', '&quot;')
-                    .replaceAll("'", '&#039;');
-            }
-
-            function loadWishes() {
-                try {
-                    var raw = localStorage.getItem(storageKey);
-                    if (!raw) return [];
-                    var parsed = JSON.parse(raw);
-                    return Array.isArray(parsed) ? parsed : [];
-                } catch (e) {
-                    return [];
-                }
-            }
-
-            function saveWishes(wishes) {
-                localStorage.setItem(storageKey, JSON.stringify(wishes));
-            }
-
-            function formatRelative(dateIso) {
-                var then = new Date(dateIso);
-                var now = new Date();
-                var diffMs = now - then;
-                var diffMins = Math.floor(diffMs / 60000);
-                if (diffMins < 1) return 'just now';
-                if (diffMins < 60) return diffMins + ' min ago';
-                var diffHours = Math.floor(diffMins / 60);
-                if (diffHours < 24) return diffHours + ' hr ago';
-                var diffDays = Math.floor(diffHours / 24);
-                return diffDays + ' day' + (diffDays === 1 ? '' : 's') + ' ago';
-            }
-
-            function renderWishes() {
-                var wishes = loadWishes();
-                var latest = wishes.slice(-8).reverse();
-                if (latest.length === 0) {
-                    list.innerHTML =
-                        '<div class="text-sm text-gray-600 dark:text-gray-400">No wishes yet. Be the first.</div>';
-                    return;
-                }
-
-                list.innerHTML = latest.map(function(wish) {
-                    var name = wish.name ? safeText(wish.name) : 'Anonymous';
-                    var title = wish.title ? safeText(wish.title) : '';
-                    var message = safeText(wish.message);
-                    var time = formatRelative(wish.createdAt);
-
-                    return [
-                        '<article class="rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-4 py-3">',
-                        '  <div class="flex items-center justify-between gap-4">',
-                        '    <div class="text-sm font-semibold text-gray-800 dark:text-gray-200">' + name +
-                        '</div>',
-                        '    <div class="text-xs text-gray-500 dark:text-gray-400">' + time + '</div>',
-                        '  </div>',
-                        title ?
-                        '  <div class="mt-1 text-sm font-medium text-gray-700 dark:text-gray-300">' +
-                        title + '</div>' : '',
-                        '  <p class="mt-2 text-sm text-gray-700 dark:text-gray-200 whitespace-pre-wrap">' +
-                        message + '</p>',
-                        '</article>'
-                    ].join('');
-                }).join('');
-            }
-
-            function showToast(messageText) {
-                toast.textContent = messageText;
-                toast.classList.remove('hidden');
-                window.clearTimeout(showToast._t);
-                showToast._t = window.setTimeout(function() {
-                    toast.classList.add('hidden');
-                }, 2600);
-            }
-
-            if (form) {
-                form.addEventListener('submit', function(e) {
-                    e.preventDefault();
-
-                    var name = document.getElementById('wishName') ? document.getElementById('wishName').value
-                        .trim() : '';
-                    var title = document.getElementById('wishTitle') ? document.getElementById('wishTitle')
-                        .value.trim() : '';
-                    var messageEl = document.getElementById('wishMessage');
-                    var message = messageEl ? messageEl.value.trim() : '';
-
-                    if (message.length < 2) {
-                        showToast('Please write a short wish.');
-                        return;
-                    }
-
-                    var wishes = loadWishes();
-                    wishes.push({
-                        name: name,
-                        title: title,
-                        message: message,
-                        createdAt: new Date().toISOString(),
-                    });
-
-                    saveWishes(wishes);
-                    if (messageEl) messageEl.value = '';
-                    renderWishes();
-                    showToast('Thanks for your wishes!');
-                });
-            }
-
-            if (clearBtn) {
-                clearBtn.addEventListener('click', function() {
-                    localStorage.removeItem(storageKey);
-                    renderWishes();
-                    showToast('Cleared on this device.');
-                });
-            }
-
-            renderWishes();
             animated.forEach(function(el) {
                 el.classList.add('wedding-fade');
             });

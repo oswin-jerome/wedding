@@ -12,7 +12,7 @@ class StoreWishRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,7 +23,8 @@ class StoreWishRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => ['nullable', 'string', 'max:60'],
+            'message' => ['required', 'string', 'min:2', 'max:500'],
         ];
     }
 }
