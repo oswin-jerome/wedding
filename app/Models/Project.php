@@ -19,6 +19,11 @@ class Project extends Model implements HasMedia
         'is_active',
     ];
 
+    public function wishes()
+    {
+        return $this->hasMany(Wish::class);
+    }
+
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('project_files')
