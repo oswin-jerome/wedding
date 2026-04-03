@@ -47,4 +47,9 @@ class WishResource extends Resource
             'edit' => EditWish::route('/{record}/edit'),
         ];
     }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
 }
